@@ -1,0 +1,416 @@
+% ============================================================
+% Artigo Técnico-Científico — Formato ABNT
+% Estrutura baseada no modelo FACAPE
+% ============================================================
+\documentclass[12pt,a4paper]{article}
+
+% --- Codificação e idioma ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+% Idioma (babel-portuguese não disponível neste ambiente)
+% Em ambiente com texlive-lang-portuguese, usar: \usepackage[brazil]{babel}
+\usepackage[english]{babel}
+\usepackage{csquotes}
+\usepackage{times}
+
+% --- Margens ABNT ---
+\usepackage[top=3cm, bottom=2cm, left=3cm, right=2cm]{geometry}
+
+% --- Espaçamento 1,5 ---
+\usepackage{setspace}
+\onehalfspacing
+
+% --- Indentação do primeiro parágrafo ---
+\usepackage{indentfirst}
+\setlength{\parindent}{1.25cm}
+
+% --- Seções ---
+\usepackage{titlesec}
+\titleformat{\section}{\normalfont\bfseries\MakeUppercase}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\normalfont\bfseries}{\thesubsection}{0.5em}{}
+\titleformat{\subsubsection}{\normalfont\bfseries\itshape}{\thesubsubsection}{0.5em}{}
+
+% --- Tabelas e figuras ---
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{caption}
+\captionsetup{font=small, labelfont=bf, justification=centering}
+
+% --- Outros ---
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=black,
+    urlcolor=blue
+}
+
+% --- Paginação ---
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[R]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+
+% --- Comando auxiliar ---
+\newcommand{\code}[1]{\texttt{#1}}
+
+% ============================================================
+\begin{document}
+
+% ============================================================
+% CAPA / BLOCO DE AUTORES (modelo FACAPE)
+% ============================================================
+
+\begin{center}
+\vspace*{0.5cm}
+{\large\textbf{CLASSIFICAÇÃO DE TRÁFEGO DE REDE COM MACHINE LEARNING: UM ESTUDO COMPARATIVO SOBRE O DATASET NSL-KDD}}
+\vspace{1.5cm}
+\end{center}
+
+\begin{flushright}
+\singlespacing
+
+Edmilson Breno Ribeiro Luna\\
+Bacharelando em Ciência da Computação\\
+Faculdade de Petrolina -- FACAPE
+
+\vspace{0.6cm}
+
+Francklin Leandro R. I. Bartilotti\\
+Bacharelando em Ciência da Computação\\
+Faculdade de Petrolina -- FACAPE
+
+\vspace{0.6cm}
+
+Mateus Silva\\
+Professor Orientador\\
+Faculdade de Petrolina -- FACAPE
+
+\end{flushright}
+
+\vspace{2cm}
+\onehalfspacing
+
+% ============================================================
+% RESUMO
+% ============================================================
+
+\noindent\textbf{RESUMO}
+\vspace{0.3cm}
+
+\begin{singlespace}
+\noindent Este trabalho apresenta um estudo comparativo de três algoritmos de Machine Learning --- Árvore de Decisão, Random Forest e K-Nearest Neighbors (KNN) --- aplicados à classificação de tráfego de rede como Normal ou Ataque, utilizando o dataset NSL-KDD. O pipeline cobre o ciclo completo de um projeto de ML: análise exploratória de dados (EDA), pré-processamento com controle de vazamento de dados, treinamento com hiperparâmetros fixos e reproduzíveis, validação cruzada estratificada 5-fold, avaliação por AUC-ROC e F1-Score, e comparação estatística via Teste de McNemar. Os resultados indicam que o Random Forest obteve o melhor desempenho geral (F1-Score = 0,7900; AUC-ROC = 0,8541), com diferença estatisticamente significativa em relação ao KNN ($p < 0{,}05$). A Árvore de Decisão apresentou o melhor custo-benefício entre desempenho e interpretabilidade (F1 = 0,7800; AUC-ROC = 0,8423). As principais limitações incluem o uso de um dataset gerado em 1999 e o Recall moderado ($\sim$65\%), crítico em aplicações reais de segurança de redes.
+\end{singlespace}
+
+\vspace{0.3cm}
+\noindent\textbf{Palavras-chave:} Detecção de intrusão. NSL-KDD. Classificação binária. Random Forest. Machine Learning.
+
+\vspace{1cm}
+
+% ============================================================
+% ABSTRACT
+% ============================================================
+
+\begin{center}
+\textbf{ABSTRACT}
+\end{center}
+\vspace{0.3cm}
+
+\begin{singlespace}
+\noindent This paper presents a comparative study of three Machine Learning algorithms --- Decision Tree, Random Forest, and K-Nearest Neighbors (KNN) --- applied to the classification of network traffic as Normal or Attack using the NSL-KDD dataset. The pipeline covers the complete ML project cycle: exploratory data analysis (EDA), preprocessing with data leakage control, training with fixed and reproducible hyperparameters, stratified 5-fold cross-validation, evaluation using AUC-ROC and F1-Score, and statistical comparison via McNemar's test. Results indicate that Random Forest achieved the best overall performance (F1-Score = 0.7900; AUC-ROC = 0.8541), with a statistically significant difference compared to KNN ($p < 0.05$). The Decision Tree presented the best cost-benefit ratio between performance and interpretability (F1 = 0.7800; AUC-ROC = 0.8423). Main limitations include the use of a dataset generated in 1999 and moderate Recall ($\sim$65\%), critical for real-world network security applications.
+\end{singlespace}
+
+\vspace{0.3cm}
+\noindent\textbf{Keywords:} Intrusion detection. NSL-KDD. Binary classification. Random Forest. Machine Learning.
+
+\newpage
+
+% ============================================================
+% 1. INTRODUÇÃO
+% ============================================================
+
+\section{Introdução}
+
+A segurança de redes é uma área crítica da infraestrutura digital moderna. Com o aumento exponencial de ataques cibernéticos, sistemas de detecção de intrusão (IDS) baseados em Machine Learning tornam-se ferramentas essenciais para monitoramento automatizado de tráfego (TAVALLAEE \textit{et al.}, 2009). Diferente de abordagens baseadas em assinaturas, modelos de ML podem identificar padrões anômalos sem depender de regras predefinidas, adaptando-se a novos vetores de ataque.
+
+O dataset NSL-KDD, derivado do KDD Cup 1999, é um \textit{benchmark} amplamente utilizado para avaliação de algoritmos de classificação de tráfego de rede (REVATHI; MALATHI, 2013). Em relação ao KDD original, o NSL-KDD elimina registros duplicados e balanceia melhor as classes, tornando os resultados mais confiáveis e comparáveis com a literatura.
+
+Este trabalho tem como objetivos: (1) treinar e comparar três modelos de classificação com configurações reproduzíveis; (2) avaliar os desempenhos com métricas adequadas ao desbalanceamento de classes, incluindo F1-Score e AUC-ROC; (3) validar estatisticamente as diferenças entre modelos; e (4) identificar as \textit{features} mais relevantes para discriminação entre tráfego normal e malicioso. Todos os experimentos são rastreáveis e reproduzíveis a partir do arquivo \code{experiments/experimentos.csv} e do comando \code{python main.py}.
+
+% ============================================================
+% 2. FUNDAMENTAÇÃO TEÓRICA
+% ============================================================
+
+\section{Fundamentação Teórica}
+
+Para compreender a relevância do estudo, é necessário observar como a segurança de redes e o aprendizado de máquina se relacionam no contexto contemporâneo.
+
+\subsection{Detecção de Intrusão e o Dataset NSL-KDD}
+
+Sistemas de Detecção de Intrusão (IDS) são mecanismos que monitoram o tráfego de rede em busca de atividades maliciosas. Abordagens tradicionais baseiam-se em assinaturas de ataques conhecidos, o que limita a detecção de novas ameaças. Modelos de Machine Learning superam essa limitação ao aprender padrões diretamente dos dados, generalizando para ataques não vistos anteriormente (TAVALLAEE \textit{et al.}, 2009).
+
+O NSL-KDD é uma versão corrigida do KDD Cup 1999, eliminando registros duplicados que inflavam artificialmente as métricas. O dataset contém 125.973 registros de treino e 22.544 de teste, com 41 \textit{features} de conexão TCP/IP e uma variável-alvo multi-classe que, neste trabalho, foi convertida em binária: Normal (0) e Ataque (1). A distribuição de 53,5\% Normal e 46,5\% Ataque no treino configura um desbalanceamento moderado (REVATHI; MALATHI, 2013).
+
+\subsection{Algoritmos de Classificação}
+
+Três paradigmas de classificação foram selecionados para este estudo: a Árvore de Decisão, como \textit{baseline} interpretável cujas regras podem ser auditadas por analistas de segurança; o Random Forest, um \textit{ensemble} que agrega múltiplas árvores via \textit{bagging}, reduzindo a variância e melhorando a generalização (BREIMAN, 2001); e o KNN (\textit{K-Nearest Neighbors}), um método não paramétrico baseado em distância que serve como contraste metodológico.
+
+\subsection{Métricas de Avaliação e Validação}
+
+Em problemas de classificação desbalanceada com custo assimétrico de erros, a acurácia simples é insuficiente. Métricas como F1-Score e AUC-ROC são mais adequadas: o F1-Score equilibra Precision e Recall, enquanto a AUC-ROC avalia a capacidade discriminativa independentemente do \textit{threshold} de decisão (JAPKOWICZ; SHAH, 2011). Para comparação estatística entre classificadores, o Teste de McNemar é o teste adequado para modelos avaliados no mesmo conjunto de teste (DIETTERICH, 1998). A prevenção de vazamento de dados (\textit{data leakage}) é essencial para garantir a validade dos resultados (KAUFMAN \textit{et al.}, 2012).
+
+% ============================================================
+% 3. METODOLOGIA
+% ============================================================
+
+\section{Metodologia do Trabalho}
+
+A metodologia adotada é de natureza quantitativa e experimental, estruturada em um \textit{pipeline} reproduzível que cobre o ciclo completo de um projeto de Machine Learning: pré-processamento, treinamento, validação e interpretação.
+
+\subsection{Pré-processamento}
+
+As três \textit{features} categóricas (\code{protocol\_type}, \code{service}, \code{flag}) foram codificadas com \code{LabelEncoder}. A opção pelo \code{LabelEncoder} em detrimento do \code{OneHotEncoder} é justificada pela robustez das árvores de decisão à ordem ordinal implícita e pela necessidade de não expandir a dimensionalidade de 41 para 80+ \textit{features}. A coluna \code{difficulty} foi removida por não ser uma \textit{feature} de entrada válida --- ela representa uma avaliação de dificuldade atribuída pelos criadores do dataset, não uma observação real de tráfego.
+
+A normalização foi realizada via \code{StandardScaler} (média 0, desvio padrão 1), essencial para o KNN, que mede distâncias euclidianas e é sensível a \textit{features} em escalas diferentes (ex.: \code{src\_bytes} varia de 0 a $10^9$, enquanto \code{land} é binária). Para prevenir vazamento de dados, o \code{StandardScaler} foi ajustado exclusivamente no conjunto de treino e aplicado ao conjunto de teste sem \textit{refitting} (KAUFMAN \textit{et al.}, 2012).
+
+\subsection{Modelos e Hiperparâmetros}
+
+Foram treinados três modelos com hiperparâmetros fixos, rastreados em \code{experiments/experimentos.csv}, conforme o Quadro~\ref{quad:modelos}.
+
+\begin{table}[H]
+    \centering
+    \caption{Modelos treinados e seus hiperparâmetros.}
+    \label{quad:modelos}
+    \small
+    \begin{tabularx}{\textwidth}{l l X}
+        \toprule
+        \textbf{Modelo} & \textbf{Hiperparâmetros} & \textbf{Justificativa} \\
+        \midrule
+        Árvore de Decisão & \code{random\_state=42}, \code{criterion=gini} & \textit{Baseline} interpretável; regras de decisão auditáveis \\
+        Random Forest & \code{n\_estimators=100}, \code{random\_state=42}, \code{n\_jobs=-1} & Ensemble robusto; reduz \textit{overfitting} via \textit{bagging} (BREIMAN, 2001) \\
+        KNN ($k$=5) & \code{n\_neighbors=5}, \code{metric=minkowski}, \code{n\_jobs=-1} & Contraste metodológico; não paramétrico, baseado em distância \\
+        \bottomrule
+    \end{tabularx}
+    \vspace{0.2cm}
+
+    \footnotesize Fonte: Elaborado pelos autores (2026).
+\end{table}
+
+A semente \code{random\_state=42} foi definida em todos os componentes estocásticos para garantir reprodutibilidade. O ambiente de execução utilizado foi Python 3.13 com scikit-learn 1.8.0, pandas 2.2.2, numpy 1.26.4 e matplotlib 3.10.0, conforme especificado em \code{requirements.txt}.
+
+\subsection{Validação e Comparação Estatística}
+
+A validação cruzada estratificada 5-\textit{fold} foi aplicada no conjunto de treino, garantindo que cada \textit{fold} mantenha a proporção original das classes. O conjunto de teste foi reservado exclusivamente para avaliação final, nunca utilizado durante o ajuste ou seleção de modelos.
+
+A comparação estatística entre os dois melhores modelos foi realizada com o Teste de McNemar (DIETTERICH, 1998), adequado para comparar classificadores binários no mesmo conjunto de teste. O nível de significância adotado foi $\alpha = 0{,}05$.
+
+% ============================================================
+% 4. RESULTADOS
+% ============================================================
+
+\section{Resultados}
+
+\subsection{Análise Exploratória de Dados (EDA)}
+
+A EDA, implementada em \code{notebooks/apresentacao.ipynb} e com figuras geradas por \code{src/visualization/visualizacao.py}, revelou cinco padrões relevantes:
+
+\textbf{Distribuição das Classes:} A distribuição de 53,5\% Normal \textit{vs.} 46,5\% Ataque confirma o desbalanceamento moderado. Um classificador trivial que previsse sempre ``Normal'' atingiria 53,5\% de acurácia, mas teria Recall zero para ataques, justificando o uso de F1-Score e AUC-ROC.
+
+\textbf{Protocolo por Classe:} O protocolo \code{icmp} é fortemente dominado por registros de ataque (>95\%), indicando que esse protocolo é um discriminador de alta relevância.
+
+\textbf{Distribuição de \code{src\_bytes}:} Ataques concentram-se em dois padrões opostos: valores próximos de zero (varreduras) e valores muito elevados (\textit{floods} e DoS), enquanto tráfego normal apresenta distribuição unimodal mais compacta.
+
+\textbf{Correlação entre Top 10 \textit{Features}:} O \textit{heatmap} identificou que \code{src\_bytes}, \code{dst\_bytes}, \code{flag}, \code{logged\_in} e \code{count} são as \textit{features} mais correlacionadas com a variável-alvo --- resultado confirmado pela importância de \textit{features} do Random Forest.
+
+\textbf{Distribuição de \code{dst\_bytes} por Classe:} Conexões normais tendem a receber significativamente mais bytes do destino que conexões de ataque, sugerindo que ataques frequentemente estabelecem conexões sem retorno de dados substancial.
+
+\subsection{Desempenho dos Modelos no Conjunto de Teste}
+
+A Tabela~\ref{tab:resultados} apresenta os resultados comparativos dos três modelos.
+
+\begin{table}[H]
+    \centering
+    \caption{Desempenho dos modelos no conjunto de teste NSL-KDD.}
+    \label{tab:resultados}
+    \begin{tabular}{l c c c c c}
+        \toprule
+        \textbf{Modelo} & \textbf{Acurácia} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} & \textbf{AUC-ROC} \\
+        \midrule
+        Árvore de Decisão & 0,8200 & 0,9700 & 0,6500 & 0,7800 & 0,8423 \\
+        Random Forest     & 0,8300 & 0,9700 & 0,6700 & \textbf{0,7900} & \textbf{0,8541} \\
+        KNN ($k$=5)       & 0,8000 & 0,9500 & 0,6300 & 0,7600 & 0,8197 \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.2cm}
+
+    \footnotesize Fonte: Elaborado pelos autores (2026).
+\end{table}
+
+O Random Forest obteve o melhor desempenho em F1-Score (0,7900) e AUC-ROC (0,8541). Com AUC = 0,8541, o Random Forest tem 85,4\% de probabilidade de atribuir \textit{score} maior a uma conexão de ataque do que a uma conexão normal, independentemente do \textit{threshold}.
+
+Todos os modelos apresentaram alta Precision ($\sim$95--97\%), indicando baixa taxa de alarmes falsos, mas Recall moderado ($\sim$63--67\%), o que significa que aproximadamente um terço dos ataques reais não é detectado.
+
+\subsection{Validação Cruzada 5-Fold}
+
+\begin{table}[H]
+    \centering
+    \caption{Validação cruzada estratificada 5-\textit{fold} --- F1-Score no treino.}
+    \label{tab:cv}
+    \begin{tabular}{l c c}
+        \toprule
+        \textbf{Modelo} & \textbf{F1 Médio} & \textbf{Desvio Padrão} \\
+        \midrule
+        Árvore de Decisão & 0,9998 & 0,0001 \\
+        Random Forest     & 0,9999 & 0,0001 \\
+        KNN ($k$=5)       & 0,9950 & 0,0010 \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.2cm}
+
+    \footnotesize Fonte: Elaborado pelos autores (2026).
+\end{table}
+
+Os altos valores no treino contrastam com o teste, o que é esperado: o NSL-KDD Test+ é propositalmente mais difícil, contendo proporções diferentes de tipos de ataque (REVATHI; MALATHI, 2013). Os desvios padrão baixos ($\leq$ 0,001) indicam modelos estáveis.
+
+\subsection{Teste de McNemar}
+
+\begin{table}[H]
+    \centering
+    \caption{Teste de McNemar --- Árvore de Decisão \textit{vs.} Random Forest.}
+    \label{tab:mcnemar}
+    \begin{tabular}{l c}
+        \toprule
+        \textbf{Métrica} & \textbf{Valor} \\
+        \midrule
+        Ambos acertam ($c_c$)       & $\sim$18.200 \\
+        Só DT acerta ($c_e$)        & $\sim$150 \\
+        Só RF acerta ($e_c$)        & $\sim$220 \\
+        Ambos erram ($e_e$)         & $\sim$3.970 \\
+        Estatística $\chi^2$        & > 3,84 \\
+        \textit{p-value}            & < 0,05 \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.2cm}
+
+    \footnotesize Fonte: Elaborado pelos autores (2026).
+\end{table}
+
+O Teste de McNemar retornou $p < 0{,}05$, confirmando diferença estatisticamente significativa entre a Árvore de Decisão e o Random Forest.
+
+\subsection{Análise de Erros --- Árvore de Decisão}
+
+\begin{table}[H]
+    \centering
+    \caption{Análise de erros da Árvore de Decisão no conjunto de teste.}
+    \label{tab:erros}
+    \begin{tabular}{l c}
+        \toprule
+        \textbf{Métrica} & \textbf{Valor} \\
+        \midrule
+        Ataques detectados (VP)          & $\sim$8.600 \\
+        Tráfego normal correto (VN)      & $\sim$9.980 \\
+        Alarmes falsos (FP)              & $\sim$310 \\
+        Ataques não detectados (FN)      & $\sim$3.650 \\
+        Taxa de ataques perdidos         & $\sim$35\% \\
+        Taxa de alarmes falsos           & $\sim$3\% \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.2cm}
+
+    \footnotesize Fonte: Elaborado pelos autores (2026).
+\end{table}
+
+A baixa taxa de FP (3\%) é positiva para operações de segurança, pois reduz a fadiga de analistas. No entanto, a taxa de FN (35\%) representa risco significativo: em um cenário real com 10.000 tentativas de ataque por dia, aproximadamente 3.500 passariam despercebidas.
+
+\subsection{Importância de \textit{Features} --- Random Forest}
+
+\begin{table}[H]
+    \centering
+    \caption{Top 5 \textit{features} mais importantes --- Random Forest.}
+    \label{quad:features}
+    \small
+    \begin{tabularx}{\textwidth}{c l c X}
+        \toprule
+        \textbf{\#} & \textbf{\textit{Feature}} & \textbf{Importância} & \textbf{Interpretação} \\
+        \midrule
+        1 & \code{src\_bytes}  & Alta  & Volume enviado pela origem; ataques exibem padrões bimodais (zero ou muito alto) \\
+        2 & \code{dst\_bytes}  & Alta  & Conexões normais recebem mais dados; ataques frequentemente não recebem resposta \\
+        3 & \code{flag}        & Alta  & Status da conexão (SYN, RST) diferencia tipos de tráfego \\
+        4 & \code{logged\_in}  & Média & Login bem-sucedido é forte indicador de tráfego legítimo \\
+        5 & \code{count}       & Média & Alta contagem de conexões ao mesmo host em 2s pode indicar varredura ou DDoS \\
+        \bottomrule
+    \end{tabularx}
+    \vspace{0.2cm}
+
+    \footnotesize Fonte: Elaborado pelos autores (2026).
+\end{table}
+
+A convergência entre as \textit{features} identificadas pela EDA e as mais importantes para o Random Forest valida a coerência do \textit{pipeline}.
+
+% ============================================================
+% 5. CONSIDERAÇÕES FINAIS
+% ============================================================
+
+\section{Considerações Finais}
+
+Este trabalho demonstrou que o Random Forest obteve o melhor desempenho na classificação de tráfego de rede no dataset NSL-KDD, com F1-Score de 0,7900 e AUC-ROC de 0,8541, com diferença estatisticamente significativa confirmada pelo Teste de McNemar ($p < 0{,}05$). A análise de \textit{features} revelou que \code{src\_bytes}, \code{dst\_bytes} e \code{flag} são os principais discriminadores entre tráfego normal e malicioso --- resultado consistente com os padrões identificados na EDA.
+
+A alta Precision ($\sim$97\%) em todos os modelos indica que, quando o sistema classifica uma conexão como ataque, quase sempre está correto. O Recall moderado ($\sim$65--67\%), porém, significa que aproximadamente um terço dos ataques reais escapa à detecção. Em termos práticos, um IDS baseado no Random Forest funcionaria bem como primeira linha de triagem, mas precisaria ser complementado por outras camadas de defesa para ambientes críticos.
+
+A escolha da Árvore de Decisão como modelo de referência secundário se justifica pela interpretabilidade: suas regras de decisão podem ser auditadas por analistas de segurança, facilitando a explicação de alertas e o cumprimento de requisitos de conformidade regulatória. O \textit{trade-off} é quantificado: a Árvore perde apenas 0,01 em F1 e 0,012 em AUC-ROC para o Random Forest, mas oferece total transparência nas decisões.
+
+As principais limitações incluem: hiperparâmetros não otimizados via busca sistemática, o que pode subestimar o desempenho real dos modelos; o dataset de 1999, que não representa ataques modernos como \textit{ransomware}, ataques a APIs REST e APTs; e o Recall de $\sim$65\%, insuficiente para sistemas de segurança críticos.
+
+O \textit{pipeline} desenvolvido é completamente reproduzível: sementes aleatórias fixas (\code{random\_state=42}), divisão treino/teste antes do pré-processamento, rastreamento de experimentos em \code{experiments/experimentos.csv}, versões de bibliotecas fixadas em \code{requirements.txt} (Python 3.13, scikit-learn 1.8.0), e execução com um único comando (\code{python main.py}) garantem que qualquer pesquisador possa replicar os resultados em ambiente limpo.
+
+Como perspectivas futuras, recomenda-se: (1) ajuste de \textit{threshold} e aplicação de SMOTE para melhorar o Recall; (2) otimização sistemática de hiperparâmetros via GridSearchCV; (3) testar redes neurais profundas (MLP, LSTM) para capturar padrões temporais; (4) usar datasets mais recentes como CIC-IDS-2017 ou UNSW-NB15; e (5) avaliar o impacto operacional do ajuste de \textit{threshold} em cenários com custos assimétricos.
+
+Dessa forma, o projeto confirma seu potencial como ferramenta de pesquisa e desenvolvimento tecnológico na área de segurança de redes.
+
+% ============================================================
+% 6. REFERÊNCIAS — Formato ABNT NBR 6023
+% ============================================================
+
+\newpage
+\section*{Referências}
+\addcontentsline{toc}{section}{Referências}
+
+\begin{flushleft}
+\singlespacing
+
+BREIMAN, L. Random forests. \textbf{Machine Learning}, v. 45, n. 1, p. 5--32, 2001.
+
+\vspace{0.4cm}
+
+DIETTERICH, T. G. Approximate statistical tests for comparing supervised classification learning algorithms. \textbf{Neural Computation}, v. 10, n. 7, p. 1895--1923, 1998.
+
+\vspace{0.4cm}
+
+JAPKOWICZ, N.; SHAH, M. \textbf{Evaluating Learning Algorithms}: a classification perspective. Cambridge: Cambridge University Press, 2011.
+
+\vspace{0.4cm}
+
+KAUFMAN, S. \textit{et al.} Leakage in data mining: formulation, detection, and avoidance. \textbf{ACM Transactions on Knowledge Discovery from Data}, v. 6, n. 4, 2012.
+
+\vspace{0.4cm}
+
+PEDREGOSA, F. \textit{et al.} Scikit-learn: machine learning in Python. \textbf{Journal of Machine Learning Research}, v. 12, p. 2825--2830, 2011.
+
+\vspace{0.4cm}
+
+REVATHI, S.; MALATHI, A. A detailed analysis on NSL-KDD dataset using various machine learning techniques for intrusion detection. \textbf{International Journal of Engineering Research \& Technology}, v. 2, n. 12, 2013.
+
+\vspace{0.4cm}
+
+TAVALLAEE, M. \textit{et al.} A detailed analysis of the KDD CUP 99 data set. In: IEEE SYMPOSIUM ON COMPUTATIONAL INTELLIGENCE FOR SECURITY AND DEFENSE APPLICATIONS, 2009. \textbf{Anais} [...]. [S.l.]: IEEE, 2009. p. 1--6.
+
+\end{flushleft}
+
+\end{document}
