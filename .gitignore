@@ -1,0 +1,32 @@
+# Ambiente virtual
+.venv/
+venv/
+env/
+
+# Cache Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Dados brutos (baixar via curl conforme README)
+data/raw/
+data/processed/
+
+# Gráficos gerados (reproduzíveis via pipeline)
+outputs/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Arquivos temporários
+*.tmp
+*.log
