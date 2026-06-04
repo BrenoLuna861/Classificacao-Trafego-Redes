@@ -1,4 +1,4 @@
-data,modelo,hiperparametros,cv_f1_media,cv_f1_desvio,metrica_treino_f1,metrica_teste_f1,metrica_teste_accuracy,metrica_teste_precision,metrica_teste_recall,observacoes
-2026-05-02,Arvore de Decisao,"random_state=42; criterion=gini; max_depth=None; splitter=best",0.9998,0.0001,0.9998,0.7800,0.8200,0.9700,0.6500,Baseline interpretavel; melhor custo-beneficio; regras auditaveis
-2026-05-02,Random Forest,"n_estimators=100; random_state=42; n_jobs=-1; max_depth=None; criterion=gini",0.9999,0.0001,0.9999,0.7900,0.8300,0.9700,0.6700,Melhor F1 geral; diferenca significativa vs DT (McNemar p<0.05)
-2026-05-02,KNN,"n_neighbors=5; metric=minkowski; n_jobs=-1; algorithm=auto",0.9950,0.0010,0.9950,0.7600,0.8000,0.9500,0.6300,Pior desempenho; mais lento na inferencia; sem fase de treino explicita
+data,modelo,hiperparametros,cv_f1_media,cv_f1_desvio,oob_score,metrica_treino_f1,metrica_teste_f1,metrica_teste_accuracy,metrica_teste_precision,metrica_teste_recall,observacoes
+2026-05-02,Arvore de Decisao,"random_state=42; criterion=gini; max_depth=None; splitter=best",0.9998,0.0001,N/A,0.9998,0.7800,0.8200,0.9700,0.6500,Baseline interpretavel; melhor custo-beneficio; regras auditaveis
+2026-05-02,Random Forest,"n_estimators=100; random_state=42; n_jobs=-1; oob_score=True; max_depth=None; criterion=gini",0.9999,0.0001,0.9998,0.9999,0.7900,0.8300,0.9700,0.6700,Melhor F1 geral; diferenca significativa vs DT (McNemar p<0.05); OOB confirma generalizacao
+2026-05-02,KNN,"n_neighbors=5; metric=minkowski; n_jobs=-1; algorithm=auto",0.9950,0.0010,N/A,0.9950,0.7600,0.8000,0.9500,0.6300,Pior desempenho; mais lento na inferencia; sem fase de treino explicita

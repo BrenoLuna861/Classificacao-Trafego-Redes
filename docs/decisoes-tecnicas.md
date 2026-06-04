@@ -8,7 +8,7 @@
 
 ## 1. Escolha do Dataset
 
-**Dataset:** NSL-KDD (Network Security Lab — KDD)  
+**Dataset:** NSL-KDDs (Network Security Lab — KDD)  
 **Fonte:** https://github.com/defcom17/NSL_KDD
 
 **Justificativa:** O NSL-KDD é a versão corrigida do KDD Cup 1999, eliminando registros duplicados que distorciam os resultados e inflavam artificialmente as métricas. É amplamente utilizado como benchmark em pesquisas de detecção de intrusão, permitindo comparação direta com a literatura existente. O dataset foi mantido como referência histórica por sua estabilidade e documentação extensiva.
@@ -93,16 +93,25 @@ Optamos por incluir os três modelos para cobrir diferentes paradigmas de aprend
 
 **Trade-off:** Não foi realizado GridSearchCV ou RandomizedSearchCV, o que pode subestimar o desempenho real dos modelos. Isso está documentado como limitação no artigo.
 
+### 5.1 Critério de Impureza: Gini vs. Entropia
+
+**Decisão:** `criterion='gini'` na Árvore de Decisão e no Random Forest.
+
+**Justificativa:** O índice de Gini é computacionalmente mais eficiente que a Entropia por evitar o cálculo de logaritmos, produzindo resultados comparáveis na maioria dos problemas práticos. O Gini é o critério padrão do scikit-learn e adequado para classificação binária como a deste projeto. A Entropia conecta a decisão ao conceito de ganho de informação, mas o custo computacional adicional não se justifica neste contexto (Aula 17 — Árvores de Decisão, slide 7).
+
 ---
 
 ## 6. Estratégia de Validação
 
-**Decisão:** Validação cruzada estratificada 5-fold no conjunto de treino.
+**Decisão:** Validação cruzada estratificada 5-fold no conjunto de treino + OOB Score no Random Forest.
 
-**Justificativa:** 
+**Justificativa da Validação Cruzada:** 
 - **Estratificada:** garante que cada fold mantenha a proporção original das classes (53,5% Normal / 46,5% Ataque).
 - **5-fold:** oferece boa estimativa de generalização com custo computacional aceitável para um dataset de 125.973 registros.
 - **Conjunto de teste reservado:** usado exclusivamente para avaliação final, nunca para seleção de hiperparâmetros ou comparação de modelos durante o desenvolvimento.
+
+**Justificativa do OOB Score (Out-of-Bag):**  
+Em cada bootstrap do Random Forest, aproximadamente 36,8% das amostras não são incluídas na amostra de treino daquela árvore. O OOB Score usa essas amostras para estimar o erro de generalização sem necessidade de um conjunto de validação separado, funcionando como uma validação cruzada automática e não enviesada. O OOB Score é computado gratuitamente durante o treinamento e complementa a validação cruzada 5-fold como segunda estimativa de generalização (Aula 19 — Ensembles, slides 7 e 30).
 
 ---
 
@@ -114,7 +123,28 @@ Optamos por incluir os três modelos para cobrir diferentes paradigmas de aprend
 
 ---
 
-## 8. Estrutura do Projeto
+## 8. Feature Importance e Suas Limitações
+
+**Decisão:** Utilizar Mean Decrease in Impurity (MDI) do Random Forest para ranquear a importância das features.
+
+**Justificativa:** O MDI mede a redução média de impureza (Gini) que cada feature produz em todas as árvores da floresta. Features com alta redução de impureza são candidatas a discriminadores relevantes entre Normal e Ataque.
+
+**Limitação conhecida — viés de alta cardinalidade:**  
+A feature `service` possui 66 valores únicos (alta cardinalidade), o que a torna candidata natural a splits em qualquer nó, mesmo que sua relevância real seja menor do que outras features. Features contínuas como `src_bytes` e `dst_bytes` também tendem a ser favorecidas por terem mais pontos de corte candidatos. Isso pode inflar artificialmente a importância de `service` no ranking MDI.
+
+Uma alternativa mais confiável é a **Permutation Feature Importance**, que embaralha cada feature individualmente e mede a queda na métrica de avaliação (F1-Score ou AUC-ROC), sendo menos sensível à cardinalidade. Essa alternativa não foi implementada neste projeto por limitação de escopo, mas é documentada como melhoria futura (Aula 19 — Ensembles, slides 9 e 33–34).
+
+---
+
+## 9. Análise do Viés-Variância nos Resultados
+
+**Observação:** A Árvore de Decisão apresentou CV F1 de 0,9998 no treino e F1 de 0,78 no teste — uma queda expressiva que indica **alta variância** (overfitting). O Random Forest, ao combinar 100 árvores via bagging com aleatoriedade nas features (√p por nó), reduz essa variância e obtém F1 de 0,79 no teste com menor lacuna treino-teste.
+
+Esse resultado está alinhado com o conceito de que o bagging combate variância sem reduzir viés, enquanto o boosting combateria viés em casos onde o modelo simples sistematicamente erra — não o caso aqui (Aula 19 — Ensembles, slides 3–4 e 19).
+
+---
+
+## 10. Estrutura do Projeto
 
 **Decisão:** Separação clara entre `data/raw/` (dados brutos, somente leitura) e `data/processed/` (dados transformados pelos scripts).
 
@@ -124,10 +154,10 @@ Optamos por incluir os três modelos para cobrir diferentes paradigmas de aprend
 
 | Módulo | Responsabilidade |
 |---|---|
-| `src/data/preprocessamento.py` | Carregamento, limpeza e preparação dos dados |
-| `src/models/treinamento.py` | Definição, treinamento e avaliação dos modelos |
-| `src/evaluation/validacao.py` | Validação cruzada, teste estatístico e análise de erros |
-| `src/visualization/visualizacao.py` | Geração de todos os gráficos do projeto |
+| `preprocessamento.py` | Carregamento, limpeza e preparação dos dados |
+| `treinamento.py` | Definição, treinamento e avaliação dos modelos |
+| `validacao.py` | Validação cruzada, teste estatístico e análise de erros |
+| `visualizacao.py` | Geração de todos os gráficos do projeto |
 | `main.py` | Orquestração do pipeline completo |
 
 Essa estrutura facilita testes isolados de cada componente e manutenção do código.

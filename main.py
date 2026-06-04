@@ -11,12 +11,12 @@ import os
 # Garante que a pasta outputs existe antes de salvar gráficos
 os.makedirs('outputs', exist_ok=True)
 
-from src.data.preprocessamento   import carregar_dados, criar_alvo_binario, preparar_dados
-from src.models.treinamento      import definir_modelos, treinar_modelos, gerar_predicoes, exibir_tabela_resultados
-from src.evaluation.validacao    import validacao_cruzada, teste_mcnemar, analise_erros
-from src.visualization.visualizacao import (gerar_todos_graficos_eda,
-                                             grafico_matrizes_confusao,
-                                             grafico_importancia_features)
+from src.preprocessamento import carregar_dados, criar_alvo_binario, preparar_dados
+from src.treinamento      import definir_modelos, treinar_modelos, gerar_predicoes, exibir_tabela_resultados
+from src.validacao        import validacao_cruzada, teste_mcnemar, analise_erros
+from src.visualizacao     import (gerar_todos_graficos_eda,
+                                   grafico_matrizes_confusao,
+                                   grafico_importancia_features)
 
 # ── 1. CARREGAR DADOS ──────────────────────────────────────
 print("\n" + "=" * 55)

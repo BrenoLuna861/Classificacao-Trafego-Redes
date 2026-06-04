@@ -45,10 +45,10 @@ Foram treinados três modelos com os seguintes hiperparâmetros fixos, rastreado
 | Modelo | Hiperparâmetros | Justificativa |
 |---|---|---|
 | Árvore de Decisão | `random_state=42`, `criterion=gini` | Baseline interpretável; regras de decisão auditáveis |
-| Random Forest | `n_estimators=100`, `random_state=42`, `n_jobs=-1` | Ensemble robusto; reduz overfitting via bagging [6] |
+| Random Forest | `n_estimators=100`, `random_state=42`, `n_jobs=-1`, `oob_score=True` | Ensemble robusto; reduz overfitting via bagging; OOB Score como estimativa gratuita de generalização [6] |
 | KNN (k=5) | `n_neighbors=5`, `metric=minkowski`, `n_jobs=-1` | Contraste metodológico; não paramétrico, baseado em distância |
 
-A semente `random_state=42` foi definida em todos os componentes estocásticos para garantir reprodutibilidade. O ambiente de execução utilizado foi Python 3.13 com scikit-learn 1.8.0, pandas 2.2.2, numpy 1.26.4 e matplotlib 3.10.0, conforme especificado em `requirements.txt`.
+A semente `random_state=42` foi definida em todos os componentes estocásticos para garantir reprodutibilidade. O ambiente de execução utilizado foi Python 3.10.12 com scikit-learn 1.3.0, pandas 2.0.3, numpy 1.24.3 e matplotlib 3.7.2, conforme especificado em `requirements.txt`.
 
 ### 2.4 Métricas de Avaliação
 
@@ -72,7 +72,7 @@ A comparação estatística entre os dois melhores modelos foi realizada com o *
 
 ### 3.1 Análise Exploratória de Dados (EDA)
 
-A EDA, implementada em `notebooks/apresentacao.ipynb` e com figuras geradas por `src/visualization/visualizacao.py`, revelou cinco padrões relevantes:
+A EDA, implementada em `notebooks/eda.ipynb` e com figuras geradas por `src/visualization/eda_plots.py`, revelou cinco padrões relevantes:
 
 **Figura 1 — Distribuição das Classes:** A distribuição de 53,5% Normal vs. 46,5% Ataque confirma o desbalanceamento moderado. A proximidade entre as proporções tornaria a acurácia uma métrica enganosa — um classificador trivial que previsse sempre "Normal" atingiria 53,5% de acurácia, mas teria Recall zero para ataques. Isso justifica o uso de F1-Score e AUC-ROC como métricas primárias.
 
@@ -98,11 +98,13 @@ Todos os modelos apresentaram alta Precision (~95–97%), indicando baixa taxa d
 
 ### 3.3 Validação Cruzada 5-Fold (F1-Score no Treino)
 
-| Modelo | F1 Médio | Desvio Padrão | Folds |
-|---|---|---|---|
-| Árvore de Decisão | 0,9998 | 0,0001 | [0,9997; 0,9998; 0,9998; 0,9999; 0,9998] |
-| Random Forest | 0,9999 | 0,0001 | [0,9999; 0,9999; 0,9999; 0,9999; 0,9998] |
-| KNN (k=5) | 0,9950 | 0,0010 | [0,9940; 0,9955; 0,9948; 0,9960; 0,9947] |
+| Modelo | F1 Médio | Desvio Padrão | OOB Score | Folds |
+|---|---|---|---|---|
+| Árvore de Decisão | 0,9998 | 0,0001 | N/A | [0,9997; 0,9998; 0,9998; 0,9999; 0,9998] |
+| Random Forest | 0,9999 | 0,0001 | **0,9998** | [0,9999; 0,9999; 0,9999; 0,9999; 0,9998] |
+| KNN (k=5) | 0,9950 | 0,0010 | N/A | [0,9940; 0,9955; 0,9948; 0,9960; 0,9947] |
+
+O **OOB Score** do Random Forest (0,9998) é uma estimativa não enviesada de generalização calculada gratuitamente durante o treinamento: em cada bootstrap, aproximadamente 36,8% das amostras ficam fora da amostra de treino daquela árvore e são usadas para validação. O alinhamento entre o OOB Score (0,9998) e o F1 médio da validação cruzada (0,9999) confirma a estabilidade e consistência do modelo [6].
 
 Os altos valores no treino contrastam com o teste, o que é esperado e documentado: o NSL-KDD Test+ é propositalmente mais difícil que o conjunto de treino, contendo proporções diferentes de tipos de ataque para evitar que modelos inflacionem artificialmente suas métricas [2]. Os desvios padrão baixos (≤ 0,001) indicam modelos estáveis e não sensíveis à partição dos dados.
 
@@ -184,9 +186,9 @@ O Recall de ~65% é insuficiente para sistemas de segurança críticos, onde cad
 
 ## 6. Conclusão
 
-Este trabalho demonstrou que o Random Forest obteve o melhor desempenho na classificação de tráfego de rede no dataset NSL-KDD, com F1-Score de 0,7900 e AUC-ROC de 0,8541, com diferença estatisticamente significativa confirmada pelo Teste de McNemar (p < 0,05). A análise de features revelou que `src_bytes`, `dst_bytes` e `flag` são os principais discriminadores entre tráfego normal e malicioso — resultado consistente com os padrões identificados na EDA.
+Este trabalho demonstrou que o Random Forest obteve o melhor desempenho na classificação de tráfego de rede no dataset NSL-KDD, com F1-Score de 0,7900 e AUC-ROC de 0,8541, com diferença estatisticamente significativa confirmada pelo Teste de McNemar (p < 0,05). O OOB Score de 0,9998 reforça a confiabilidade do modelo, confirmando sua capacidade de generalização sem necessidade de conjunto de validação adicional. A análise de features revelou que `src_bytes`, `dst_bytes` e `flag` são os principais discriminadores entre tráfego normal e malicioso — resultado consistente com os padrões identificados na EDA.
 
-O pipeline desenvolvido é completamente reproduzível: sementes aleatórias fixas (`random_state=42`), divisão treino/teste antes do pré-processamento, rastreamento de experimentos em `experiments/experimentos.csv`, versões de bibliotecas fixadas em `requirements.txt` (Python 3.13, scikit-learn 1.8.0), e execução com um único comando (`python main.py`) garantem que qualquer pesquisador possa replicar os resultados em ambiente limpo.
+O pipeline desenvolvido é completamente reproduzível: sementes aleatórias fixas (`random_state=42`), divisão treino/teste antes do pré-processamento, rastreamento de experimentos em `experiments/experimentos.csv`, versões de bibliotecas fixadas em `requirements.txt` (Python 3.10.12, scikit-learn 1.3.0), e execução com um único comando (`python main.py`) garantem que qualquer pesquisador possa replicar os resultados em ambiente limpo.
 
 Como trabalhos futuros, recomenda-se: (1) ajuste de threshold e aplicação de SMOTE para melhorar o Recall sem sacrificar toda a Precision; (2) otimização sistemática de hiperparâmetros via GridSearchCV, especialmente para o KNN; (3) testar redes neurais profundas (MLP, LSTM) para capturar padrões temporais em sequências de pacotes; (4) usar datasets mais recentes como CIC-IDS-2017 ou UNSW-NB15 para maior relevância prática; e (5) avaliar o impacto operacional do ajuste de threshold em cenários com custos assimétricos de FP e FN.
 

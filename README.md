@@ -93,22 +93,14 @@ CTDR/
 │   └── apresentacao.ipynb
 ├── src/
 │   ├── __init__.py
-│   ├── data/
-│   │   └── preprocessamento.py     ← carregamento e preparação dos dados
-│   ├── features/                   ← engenharia de features (reservado)
-│   ├── models/
-│   │   └── treinamento.py          ← definição e treinamento dos modelos
-│   ├── evaluation/
-│   │   └── validacao.py            ← validação cruzada e teste estatístico
-│   └── visualization/
-│       └── visualizacao.py         ← geração de todos os gráficos
+│   ├── preprocessamento.py     ← carregamento e preparação dos dados
+│   ├── treinamento.py          ← definição e treinamento dos modelos
+│   ├── validacao.py            ← validação cruzada e teste estatístico
+│   └── visualizacao.py         ← geração de todos os gráficos
 ├── experiments/
 │   └── experimentos.csv        ← rastreamento de experimentos
 ├── article/
-│   ├── artigo.md               ← artigo técnico-científico
-│   ├── referencias.bib         ← referências bibliográficas
-│   ├── figures/                ← figuras geradas pelo pipeline
-│   └── tables/                 ← tabelas do artigo
+│   └── artigo.md               ← artigo técnico-científico
 ├── docs/
 │   ├── decisoes-tecnicas.md    ← justificativas metodológicas
 │   └── dicionario-de-dados.md  ← descrição de todas as features
