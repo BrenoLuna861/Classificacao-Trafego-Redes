@@ -60,14 +60,15 @@ Os gráficos são salvos automaticamente em `outputs/` e os resultados em `exper
 
 ## Resumo dos Resultados
 
-| Modelo | Acurácia | Precision | Recall | F1-Score | CV F1 (média ± dp) |
-|---|---|---|---|---|---|
-| Árvore de Decisão | 0.8200 | 0.9700 | 0.6500 | 0.7800 | 0.9998 ± 0.0001 |
-| Random Forest | 0.8300 | 0.9700 | 0.6700 | **0.7900** | 0.9999 ± 0.0001 |
-| KNN (k=5) | 0.8000 | 0.9500 | 0.6300 | 0.7600 | 0.9950 ± 0.0010 |
+| Modelo | Acurácia | Precision | Recall | F1-Score | OOB Score | CV F1 (média ± dp) |
+|---|---|---|---|---|---|---|
+| Árvore de Decisão | 0.8200 | 0.9700 | 0.6500 | 0.7800 | N/A | 0.9998 ± 0.0001 |
+| Random Forest | 0.8300 | 0.9700 | 0.6700 | **0.7900** | **0.9998** | 0.9999 ± 0.0001 |
+| KNN (k=5) | 0.8000 | 0.9500 | 0.6300 | 0.7600 | N/A | 0.9950 ± 0.0010 |
 
 - O **Teste de McNemar** confirmou diferença estatisticamente significativa entre Árvore de Decisão e Random Forest (p < 0.05)
 - O **Random Forest** obteve o melhor F1-Score geral
+- O **OOB Score** do Random Forest (0.9998) confirma boa capacidade de generalização sem necessidade de conjunto de validação adicional
 - A **Árvore de Decisão** apresentou o melhor custo-benefício entre interpretabilidade e desempenho
 - Features mais importantes: `src_bytes`, `dst_bytes`, `flag`, `logged_in`, `count`
 
@@ -79,6 +80,7 @@ Os gráficos são salvos automaticamente em `outputs/` e os resultados em `exper
 - Recall de ~65% implica que ~35% dos ataques reais não são detectados
 - Hiperparâmetros não otimizados via busca sistemática (GridSearchCV)
 - Modelos não testados em tráfego de rede real
+- Feature importance MDI pode ser enviesada para features de alta cardinalidade (ex: `service`)
 
 ---
 
@@ -90,9 +92,13 @@ CTDR/
 │   ├── raw/                    ← datasets brutos (não modificar)
 │   └── processed/              ← dados após pré-processamento
 ├── notebooks/
-│   └── apresentacao.ipynb
+│   └── apresentacao.ipynb      ← notebook de apresentação do projeto
 ├── src/
 │   ├── __init__.py
+│   ├── features/
+│   │   └── __init__.py         ← reservado para engenharia de features
+│   ├── evaluation/
+│   │   └── __init__.py         ← reservado para métricas e avaliação
 │   ├── preprocessamento.py     ← carregamento e preparação dos dados
 │   ├── treinamento.py          ← definição e treinamento dos modelos
 │   ├── validacao.py            ← validação cruzada e teste estatístico
@@ -100,7 +106,10 @@ CTDR/
 ├── experiments/
 │   └── experimentos.csv        ← rastreamento de experimentos
 ├── article/
-│   └── artigo.md               ← artigo técnico-científico
+│   ├── artigo.md               ← artigo técnico-científico
+│   └── artigo.pdf              ← versão compilada em PDF (LaTeX/ABNT)
+├── artigo_pdf/
+│   └── artigo.pdf              ← cópia do artigo em PDF para acesso rápido
 ├── docs/
 │   ├── decisoes-tecnicas.md    ← justificativas metodológicas
 │   └── dicionario-de-dados.md  ← descrição de todas as features
